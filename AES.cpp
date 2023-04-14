@@ -22,3 +22,20 @@ AES::AES(const AESKeyLength keylength) {
 }
 
 // Functions here
+// Ignore errors for now just function definitions
+
+void AES::KeyExpansion() {}
+
+void AES::Subword() {}
+
+void AES::RotWord() {}
+
+void AES::InvShiftRows() {}
+
+void AES::InvSubBytes() {}
+
+void AES::InvMixColumns() {}
+
+void AES::InvShiftRows() {}
+
+void AES::AddRoundKey() {}
