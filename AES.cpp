@@ -24,6 +24,12 @@ AES::AES(const AESKeyLength keylength) {
 // Functions here
 // Ignore errors for now just function definitions
 
+void AES::SubBytes() {}
+
+void AES::ShiftRows() {}
+
+void AES::MixColumns() {}
+
 void AES::KeyExpansion() {}
 
 void AES::Subword() {}
