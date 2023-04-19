@@ -1,15 +1,25 @@
 #ifndef _AES_H_
 #define _AES_H_
-
+#include <vector>
 enum class AESKeyLength { AES_128, AES_192, AES_256 };
 
 class AES {
 private:
+  // number of bytes in word
   static constexpr unsigned int Nb = 4;
   // Number of 32 bit words comprising of the cipher key.
   unsigned int Nk;
   // Number of rounds, dependent on Nk and Nb.
   unsigned int Nr;
+
+  static constexpr unsigned int block_bytes_len =
+      4 * Nb * sizeof(unsigned char);
+
+  // Utility functions
+  //
+  std::vector<unsigned char> ArrayToVector(unsigned char *a, unsigned int len);
+
+  unsigned char *VectorToArray(std::vector<unsigned char> &a);
 
 public:
   explicit AES(const AESKeyLength keyLength = AESKeyLength::AES_256);

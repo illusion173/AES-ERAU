@@ -45,3 +45,15 @@ void AES::InvMixColumns() {}
 void AES::InvShiftRows() {}
 
 void AES::AddRoundKey() {}
+
+// Converts any given char pointer's content to a unsigned char vector.
+std::vector<unsigned char> AES::ArrayToVector(unsigned char *a,
+                                              unsigned int length_of_a) {
+  std::vector<unsigned char> v(a, a + length_of_a * sizeof(unsigned char));
+  return v;
+}
+
+// Simply returns a vector as an array of chars.
+unsigned char *AES::VectorToArray(std::vector<unsigned char> &a) {
+  return a.data();
+}
