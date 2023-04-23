@@ -19,8 +19,7 @@ private:
   // Number of rounds, dependent on Nk and Nb.
   unsigned int Nr;
 
-  static constexpr unsigned int block_bytes_len =
-      4 * Nb * sizeof(unsigned char);
+  static constexpr unsigned int blockBytesLen = 4 * Nb * sizeof(unsigned char);
 
   void SubBytes(unsigned char state[4][Nb]);
 
