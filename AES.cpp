@@ -174,6 +174,41 @@ void AES::Rcon(unsigned char *a, unsigned int n) {
   a[1] = a[2] = a[3] = 0;
 }
 
+void AES::KeyExpansion(const unsigned char key[], unsigned char w[]) {
+  unsigned char temp[4];
+  unsigned char rcon[4];
+
+  unsigned int i = 0;
+  while (i < 4 * Nk) {
+    w[i] = key[i];
+    i++;
+  }
+
+  i = 4 * Nk;
+  while (i < 4 * Nb * (Nr + 1)) {
+    temp[0] = w[i - 4 + 0];
+    temp[1] = w[i - 4 + 1];
+    temp[2] = w[i - 4 + 2];
+    temp[3] = w[i - 4 + 3];
+
+    if (i / 4 % Nk == 0) {
+      RotWord(temp);
+      SubWord(temp);
+      Rcon(rcon, i / (Nk * 4));
+      XorWords(temp, rcon, temp);
+    } else if (Nk > 6 && i / 4 % Nk == 4) {
+      SubWord(temp);
+    }
+
+    w[i + 0] = w[i - 4 * Nk] ^ temp[0];
+    w[i + 1] = w[i + 1 - 4 * Nk] ^ temp[1];
+    w[i + 2] = w[i + 2 - 4 * Nk] ^ temp[2];
+    w[i + 3] = w[i + 3 - 4 * Nk] ^ temp[3];
+    i += 4;
+  }
+}
+
+// Jeremiah END
 // SARAH BEGIN
 void AES::MixColumns(unsigned char state[4][Nb]) {
   unsigned char temp_state[4][Nb];
@@ -211,5 +246,223 @@ void AES::SubWord(unsigned char *a) {
   int i;
   for (i = 0; i < 4; i++) {
     a[i] = SBOX[a[i] / 16][a[i] % 16];
+  }
+}
+
+// multiply on x
+unsigned char AES::xtime(unsigned char b) {
+  return (b << 1) ^ (((b >> 7) & 1) * 0x1b);
+}
+
+// shift row i on n positions
+void AES::ShiftRow(unsigned char state[4][Nb], unsigned int i, unsigned int n) {
+  unsigned char tmp[Nb];
+  for (unsigned int j = 0; j < Nb; j++) {
+    tmp[j] = state[i][(j + n) % Nb];
+  }
+  memcpy(state[i], tmp, Nb * sizeof(unsigned char));
+}
+
+void AES::ShiftRows(unsigned char state[4][Nb]) {
+  ShiftRow(state, 1, 1);
+  ShiftRow(state, 2, 2);
+  ShiftRow(state, 3, 3);
+}
+
+void AES::SubBytes(unsigned char state[4][Nb]) {
+  unsigned int i, j;
+  unsigned char t;
+  for (i = 0; i < 4; i++) {
+    for (j = 0; j < Nb; j++) {
+      t = state[i][j];
+      state[i][j] = SBOX[t / 16][t % 16];
+    }
+  }
+}
+
+void AES::EncryptBlock(const unsigned char in[], unsigned char out[],
+                       unsigned char *roundKeys) {
+  unsigned char state[4][Nb];
+  unsigned int i, j, round;
+
+  for (i = 0; i < 4; i++) {
+    for (j = 0; j < Nb; j++) {
+      state[i][j] = in[i + 4 * j];
+    }
+  }
+
+  AddRoundKey(state, roundKeys);
+
+  for (round = 1; round <= Nr - 1; round++) {
+    SubBytes(state);
+    ShiftRows(state);
+    MixColumns(state);
+    AddRoundKey(state, roundKeys + round * 4 * Nb);
+  }
+
+  SubBytes(state);
+  ShiftRows(state);
+  AddRoundKey(state, roundKeys + Nr * 4 * Nb);
+
+  for (i = 0; i < 4; i++) {
+    for (j = 0; j < Nb; j++) {
+      out[i + 4 * j] = state[i][j];
+    }
+  }
+}
+
+void AES::DecryptBlock(const unsigned char in[], unsigned char out[],
+                       unsigned char *roundKeys) {
+  unsigned char state[4][Nb];
+  unsigned int i, j, round;
+
+  for (i = 0; i < 4; i++) {
+    for (j = 0; j < Nb; j++) {
+      state[i][j] = in[i + 4 * j];
+    }
+  }
+
+  AddRoundKey(state, roundKeys + Nr * 4 * Nb);
+
+  for (round = Nr - 1; round >= 1; round--) {
+    InvSubBytes(state);
+    InvShiftRows(state);
+    AddRoundKey(state, roundKeys + round * 4 * Nb);
+    InvMixColumns(state);
+  }
+
+  InvSubBytes(state);
+  InvShiftRows(state);
+  AddRoundKey(state, roundKeys);
+
+  for (i = 0; i < 4; i++) {
+    for (j = 0; j < Nb; j++) {
+      out[i + 4 * j] = state[i][j];
+    }
+  }
+}
+
+unsigned char *AES::EncryptECB(const unsigned char *in, unsigned int inLen,
+                               const unsigned char *key) {
+  CheckLength(inLen);
+
+  unsigned char *out = new unsigned char[inLen];
+
+  // calculate number of blocks
+  const unsigned int numBlocks = inLen / blockBytesLen;
+
+  // allocate memory for round keys
+  std::vector<unsigned char> roundKeys(4 * Nb * (Nr + 1));
+
+  // expand key
+  KeyExpansion(key, roundKeys.data());
+
+  // encrypt each block
+  for (unsigned int i = 0; i < numBlocks; ++i) {
+    EncryptBlock(in + i * blockBytesLen, out + i * blockBytesLen,
+                 roundKeys.data());
+  }
+  return out;
+}
+unsigned char *AES::DecryptECB(const unsigned char in[], unsigned int inLen,
+                               const unsigned char key[]) {
+  CheckLength(inLen);
+  unsigned char *out = new unsigned char[inLen];
+  unsigned char *roundKeys = new unsigned char[4 * Nb * (Nr + 1)];
+  KeyExpansion(key, roundKeys);
+  for (unsigned int i = 0; i < inLen; i += blockBytesLen) {
+    DecryptBlock(in + i, out + i, roundKeys);
+  }
+
+  delete[] roundKeys;
+
+  return out;
+}
+
+unsigned char *AES::EncryptCBC(const unsigned char in[], unsigned int inLen,
+                               const unsigned char key[],
+                               const unsigned char *iv) {
+  CheckLength(inLen);
+  unsigned char *out = new unsigned char[inLen];
+  unsigned char block[blockBytesLen];
+  unsigned char *roundKeys = new unsigned char[4 * Nb * (Nr + 1)];
+  KeyExpansion(key, roundKeys);
+  memcpy(block, iv, blockBytesLen);
+  for (unsigned int i = 0; i < inLen; i += blockBytesLen) {
+    XorBlocks(block, in + i, block, blockBytesLen);
+    EncryptBlock(block, out + i, roundKeys);
+    memcpy(block, out + i, blockBytesLen);
+  }
+
+  delete[] roundKeys;
+
+  return out;
+}
+
+unsigned char *AES::DecryptCBC(const unsigned char in[], unsigned int inLen,
+                               const unsigned char key[],
+                               const unsigned char *iv) {
+  CheckLength(inLen);
+  unsigned char *out = new unsigned char[inLen];
+  unsigned char block[blockBytesLen];
+  unsigned char *roundKeys = new unsigned char[4 * Nb * (Nr + 1)];
+  KeyExpansion(key, roundKeys);
+  memcpy(block, iv, blockBytesLen);
+  for (unsigned int i = 0; i < inLen; i += blockBytesLen) {
+    DecryptBlock(in + i, out + i, roundKeys);
+    XorBlocks(block, out + i, out + i, blockBytesLen);
+    memcpy(block, in + i, blockBytesLen);
+  }
+
+  delete[] roundKeys;
+
+  return out;
+}
+unsigned char *AES::EncryptCFB(const unsigned char in[], unsigned int inLen,
+                               const unsigned char key[],
+                               const unsigned char *iv) {
+  CheckLength(inLen);
+  unsigned char *out = new unsigned char[inLen];
+  unsigned char block[blockBytesLen];
+  unsigned char encryptedBlock[blockBytesLen];
+  unsigned char *roundKeys = new unsigned char[4 * Nb * (Nr + 1)];
+  KeyExpansion(key, roundKeys);
+  memcpy(block, iv, blockBytesLen);
+  for (unsigned int i = 0; i < inLen; i += blockBytesLen) {
+    EncryptBlock(block, encryptedBlock, roundKeys);
+    XorBlocks(in + i, encryptedBlock, out + i, blockBytesLen);
+    memcpy(block, out + i, blockBytesLen);
+  }
+
+  delete[] roundKeys;
+
+  return out;
+}
+
+unsigned char *AES::DecryptCFB(const unsigned char in[], unsigned int inLen,
+                               const unsigned char key[],
+                               const unsigned char *iv) {
+  CheckLength(inLen);
+  unsigned char *out = new unsigned char[inLen];
+  unsigned char block[blockBytesLen];
+  unsigned char encryptedBlock[blockBytesLen];
+  unsigned char *roundKeys = new unsigned char[4 * Nb * (Nr + 1)];
+  KeyExpansion(key, roundKeys);
+  memcpy(block, iv, blockBytesLen);
+  for (unsigned int i = 0; i < inLen; i += blockBytesLen) {
+    EncryptBlock(block, encryptedBlock, roundKeys);
+    XorBlocks(in + i, encryptedBlock, out + i, blockBytesLen);
+    memcpy(block, in + i, blockBytesLen);
+  }
+
+  delete[] roundKeys;
+
+  return out;
+}
+
+void AES::CheckLength(unsigned int len) {
+  if (len % blockBytesLen != 0) {
+    throw std::length_error("Plaintext length must be divisible by " +
+                            std::to_string(blockBytesLen));
   }
 }
