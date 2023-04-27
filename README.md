@@ -12,6 +12,17 @@ This is a class project for **Embry-Riddle Aeronautical University**, class **CS
 For further sources see [Links](#Links)
 
 # Usage
+To compile:
+g++ AES.cpp (main.cpp) -o AES
+To Run Encryption:
+ECB, CBC, CFB modes are supported.
+...
+./AES MODE E EncryptionKey IV plaintext
+...
+...
+To Run Decryption:
+./AES MODE D DecryptionKey IV ciphertext
+...
 
 ```c++
 ...
@@ -37,7 +48,7 @@ c = aes.EncryptECB(plain, key);
 //now vector c contains ciphertext
 ...
 ```
-ECB, CBC, CFB modes are supported.
+
 
 
 
