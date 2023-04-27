@@ -21,8 +21,8 @@ g++ AES.cpp main.cpp -o AES
 ```
 ## Command Line Usage
 
-To Run Encryption: <br>
 ECB, CBC, CFB modes are supported. <br>
+To Run Encryption: <br>
 ```
 ./AES MODE E EncryptionKey IV plaintext
 ```
