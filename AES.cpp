@@ -21,8 +21,7 @@ AES::AES(const AESKeyLength keylength) {
   }
 }
 
-// Jeremiah Begin
-// Public
+// JEREMIAH BEGIN
 std::vector<unsigned char> AES::EncryptECB(std::vector<unsigned char> in,
                                            std::vector<unsigned char> key) {
   unsigned char *out = EncryptECB(VectorToArray(in), (unsigned int)in.size(),
@@ -418,6 +417,9 @@ unsigned char *AES::DecryptCBC(const unsigned char in[], unsigned int inLen,
 
   return out;
 }
+// SARAH END
+
+// JEREMIAH BEGIN
 unsigned char *AES::EncryptCFB(const unsigned char in[], unsigned int inLen,
                                const unsigned char key[],
                                const unsigned char *iv) {
@@ -465,4 +467,5 @@ void AES::CheckLength(unsigned int len) {
     throw std::length_error("Plaintext length must be divisible by " +
                             std::to_string(blockBytesLen));
   }
+  // JEREMIAH END
 }

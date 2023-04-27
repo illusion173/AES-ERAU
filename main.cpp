@@ -107,6 +107,8 @@ int main(int argc, char **argv) {
   return 0;
 }
 
+// Work around for switches in cpp, since they can't handle strings, we used
+// enums.
 user_input_code hashit(char *selection) {
 
   if (strcmp("ECB", selection)) {
@@ -159,7 +161,7 @@ void run_user_test(char **argv) {
     user_aes.printHexVector(user_cipher_text);
     break;
   case ECB:
-    // IGNORE THIS PTR, wow that's bad
+    // IGNORE THIS PTR, just yeesh its bad
     char *dummyptr;
     userTest = createUserTest(argv[2], dummyptr, argv[4]);
     user_cipher_text = user_aes.EncryptECB(userTest.plain_text, userTest.key);

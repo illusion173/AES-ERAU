@@ -11,6 +11,7 @@
 enum class AESKeyLength { AES_128, AES_192, AES_256 };
 
 class AES {
+  // JEREMIAH BEGIN
 private:
   // number of bytes in word
   static constexpr unsigned int Nb = 4;
@@ -66,6 +67,9 @@ private:
   std::vector<unsigned char> ArrayToVector(unsigned char *a, unsigned int len);
 
   unsigned char *VectorToArray(std::vector<unsigned char> &a);
+  // JEREMIAH END
+  //
+  // SARAH BEGIN
   // Interface on what the the programmer can call
 public:
   explicit AES(const AESKeyLength keyLength = AESKeyLength::AES_256);
@@ -114,7 +118,9 @@ public:
 
   void printHexVector(std::vector<unsigned char> a);
 };
-// Galois Multiplication Lookup Tables
+// SARAH END
+//  Galois Multiplication Lookup Tables
+//  JEREMIAH BEGIN
 static const unsigned char GALOISMULTI[15][256] = {
     {},
     {},
@@ -339,3 +345,4 @@ static const unsigned char INVCMDS[4][4] = {
     {14, 11, 13, 9}, {9, 14, 11, 13}, {13, 9, 14, 11}, {11, 13, 9, 14}};
 
 #endif
+// JEREMIAH END
