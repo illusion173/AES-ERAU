@@ -84,13 +84,13 @@ std::vector<unsigned char> AES::DecryptCFB(std::vector<unsigned char> in,
 // Utility functions
 void AES::printHexArray(unsigned char a[], unsigned int n) {
   for (unsigned int i = 0; i < n; i++) {
-    printf("%02x ", a[i]);
+    printf("0x%02x ", a[i]);
   }
 }
 
 void AES::printHexVector(std::vector<unsigned char> a) {
   for (unsigned int i = 0; i < a.size(); i++) {
-    printf("%02x ", a[i]);
+    printf("0x%02x ", a[i]);
   }
 }
 
