@@ -17,7 +17,7 @@ For further sources see [Links](#Links)
 To compile:
 ```
 
-g++ AES.cpp (main.cpp) -o AES
+g++ AES.cpp main.cpp -o AES
 ```
 ## Command Line Usage
 
