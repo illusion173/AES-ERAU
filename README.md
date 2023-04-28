@@ -22,6 +22,9 @@ g++ AES.cpp main.cpp -o AES
 ## Command Line Usage
 
 ECB, CBC, CFB modes are supported. <br>
+However, padding has not been implemented. <br>
+This library does not provide any padding. <br>
+The plaintext/ciphertext length in bytes must be divisible by 16. <br>
 To Run User Test Cases:
 ```
 ./AES 1
