@@ -3,32 +3,30 @@
 #include <cstring>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <stdio.h>
 #include <string.h>
 #include <vector>
-
 enum user_input_code { CFB, CBC, ECB, UNDEFINED };
 
-struct UserData {
-  std::vector<unsigned char> key;
-  std::vector<unsigned char> iv;
-  std::vector<unsigned char> plain_text;
-};
+std::map<int, unsigned char> hexcharacters;
 
 void run_user_test(char **);
 user_input_code hashit(char *);
+void initialize_hex_characters();
 
 int main(int argc, char **argv) {
-  std::cout << "Begin AES test program" << std::endl;
 
   std::cout << "------ ENCRYPTION ------" << std::endl;
   // Begin first with 128 bits. ENCRYPTION
   std::vector<unsigned char> initial_plain = {
       0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
       0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff};
+
   std::vector<unsigned char> initial_key = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05,
                                             0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b,
                                             0x0c, 0x0d, 0x0e, 0x0f};
+
   std::vector<unsigned char> initial_iv = {0x2d, 0xde, 0xee, 0x3d, 0x2b, 0x60,
                                            0x6d, 0xd8, 0x08, 0x4f, 0xf1, 0x4c,
                                            0x64, 0x07, 0x62, 0xfd};
@@ -40,7 +38,6 @@ int main(int argc, char **argv) {
   std::vector<unsigned char> initial_test = {0xf8, 0xd4, 0x55, 0x63, 0x6c, 0xaa,
                                              0x13, 0x63, 0x5d, 0x80, 0x5a, 0x78,
                                              0x18, 0xe1, 0xec, 0xcd};
-
   if (first_cipher_test == initial_test) {
     std::cout << "128 bit ECB TEST PASS" << std::endl;
   } else {
@@ -101,7 +98,7 @@ int main(int argc, char **argv) {
 
   // Check if user inputted anything
   // For now we can only take 128 bits
-  if (argc > 2) {
+  if (argc > 1) {
     run_user_test(argv);
   }
   return 0;
@@ -123,59 +120,92 @@ user_input_code hashit(char *selection) {
   return UNDEFINED;
 }
 
-std::vector<unsigned char> convert_to_vec(char *item) {
+std::vector<unsigned char> convert_to_vec(std::string hex_string) {
   std::vector<unsigned char> result;
-  for (char c = *item; c; c = *++item) {
-    result.push_back(c);
+  // Iterate over the string two characters at a time
+  for (std::string::size_type i = 0; i < hex_string.size(); i += 2) {
+    // Convert the two characters to an unsigned char
+    unsigned char hex_value = std::stoi(hex_string.substr(i, 2), nullptr, 16);
+    result.push_back(hex_value);
   }
+
   return result;
-}
-
-UserData createUserTest(char *user_key, char *user_iv, char *user_plain_text) {
-  UserData newUserTest;
-
-  std::vector<unsigned char> user_iv_vec, user_plain_vec, user_key_vec;
-  user_key_vec = convert_to_vec(user_key);
-  user_iv_vec = convert_to_vec(user_iv);
-  user_plain_vec = convert_to_vec(user_plain_text);
-
-  newUserTest.key = user_key_vec;
-  newUserTest.iv = user_iv_vec;
-  newUserTest.plain_text = user_plain_vec;
-
-  return newUserTest;
 }
 
 void run_user_test(char **argv) {
   // Take first argument as CBC, CFB, or ECB
-  char *user_type_selection = argv[1];
-  UserData userTest;
-
   AES user_aes(AESKeyLength::AES_128);
+  std::vector<unsigned char> swap;
   std::vector<unsigned char> user_cipher_text;
-  switch (hashit(user_type_selection)) {
-  case CFB:
-    userTest = createUserTest(argv[2], argv[3], argv[4]);
+  std::vector<unsigned char> user_plain_vec;
+  std::vector<unsigned char> user_key_vec;
+  std::vector<unsigned char> user_iv_vec;
+  std::string user_key;
+  std::string user_plain;
+  std::string user_iv;
+
+  int user_choice = 0;
+  printf("Enter a choice:\n");
+  printf("1 for CFB\n");
+  printf("2 for ECB\n");
+  printf("3 for CBC\n");
+  std::cin >> user_choice;
+  std::cin.clear();
+  printf("Enter the secret key, in hex:\n");
+  std::cin >> user_key;
+  std::cin.clear();
+  printf("Enter the plaintext/ciphertext, in hex: \n");
+  std::cin >> user_plain;
+  std::cin.clear();
+
+  user_plain_vec = convert_to_vec(user_plain);
+  user_key_vec = convert_to_vec(user_key);
+
+  switch (user_choice) {
+  case 1:
+    printf("\n");
+    printf("Enter IV: \n");
+    std::cin >> user_iv;
+    user_iv_vec = convert_to_vec(user_iv);
+    printf("Performing user test - CFB\n");
+    printf("Encrypted Hex: \n");
     user_cipher_text =
-        user_aes.EncryptCBC(userTest.plain_text, userTest.key, userTest.iv);
+        user_aes.EncryptCFB(user_plain_vec, user_key_vec, user_iv_vec);
+    user_aes.printHexVector(user_cipher_text);
+    swap = user_cipher_text;
+    printf("\nDecrypted Hex: \n");
+    user_cipher_text = user_aes.DecryptCFB(swap, user_key_vec, user_iv_vec);
     user_aes.printHexVector(user_cipher_text);
     break;
-  case ECB:
-    // IGNORE THIS PTR, just yeesh its bad
-    char *dummyptr;
-    userTest = createUserTest(argv[2], dummyptr, argv[4]);
-    user_cipher_text = user_aes.EncryptECB(userTest.plain_text, userTest.key);
+  case 2:
+    printf("\n");
+    printf("Performing user test - ECB\n");
+    printf("Encrypted Hex: \n");
+    user_cipher_text = user_aes.EncryptECB(user_plain_vec, user_key_vec);
+    user_aes.printHexVector(user_cipher_text);
+    printf("\nDecrypted Hex: \n");
+    swap = user_cipher_text;
+    user_cipher_text = user_aes.DecryptECB(swap, user_key_vec);
     user_aes.printHexVector(user_cipher_text);
     break;
-  case CBC:
-    userTest = createUserTest(argv[2], argv[3], argv[4]);
+  case 3:
+    printf("\n");
+    printf("Enter IV: \n");
+    std::cin >> user_iv;
+    user_iv_vec = convert_to_vec(user_iv);
+    printf("Performing user test - CBC\n");
+    printf("Encrypted Hex: \n");
     user_cipher_text =
-        user_aes.EncryptCFB(userTest.plain_text, userTest.key, userTest.iv);
+        user_aes.EncryptCBC(user_plain_vec, user_key_vec, user_iv_vec);
+    user_aes.printHexVector(user_cipher_text);
+
+    printf("\nDecrypted Hex: \n");
+    swap = user_cipher_text;
+    user_cipher_text = user_aes.DecryptCBC(swap, user_key_vec, user_iv_vec);
     user_aes.printHexVector(user_cipher_text);
     break;
   default:
-    std::cout << "Usage: ./AES mode user_key_input, user_iv, user_plain_text"
-              << std::endl;
+    std::cout << "Usage: ./AES mode E/D" << std::endl;
     exit(0);
   }
 }
