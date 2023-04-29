@@ -2,7 +2,7 @@
 [![License](https://img.shields.io/github/license/illusion173/AES-ERAU)](https://github.com/illusion173/AES-ERAU/blob/main/LICENSE)
 ![Repo Size](https://img.shields.io/github/repo-size/illusion173/AES-ERAU)
 ![Language](https://img.shields.io/github/languages/top/illusion173/AES-ERAU)
-Created by:<br>
+<br>Created by:<br>
 Jeremiah Webb <Jeremiah_L_Webb@hotmail.com> <br>
 Sarah Gleixner
 ## Description
