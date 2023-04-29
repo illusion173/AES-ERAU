@@ -12,8 +12,6 @@ This is a class project for **Embry-Riddle Aeronautical University**, class **CS
 For further sources see [Links](#Links)
 
 # Usage
-
-
 To compile:
 ```
 
@@ -29,6 +27,9 @@ To Run User Test Cases:
 ```
 ./AES 1
 ```
+Currently, a menu runs and asks for user inputs.
+Users can do encryption and decryption of all three modes and byte sizes from command line.
+
 ## Code Usage
 ```c++
 ...
