@@ -2,7 +2,9 @@
 [![License](https://img.shields.io/github/license/illusion173/AES-ERAU)](https://github.com/illusion173/AES-ERAU/blob/main/LICENSE)
 ![Repo Size](https://img.shields.io/github/repo-size/illusion173/AES-ERAU)
 ![Language](https://img.shields.io/github/languages/top/illusion173/AES-ERAU)
-
+Created by:<br>
+Jeremiah Webb <Jeremiah_L_Webb@hotmail.com>
+Sarah Gleixner
 ## Description
 This is an implementation of the NIST defined AES [symmetric-key algorithm](https://en.wikipedia.org/wiki/Symmetric-key_algorithm) written in C++. AES is a variant of the Rijndael [block cipher](https://en.wikipedia.org/wiki/Block_cipher).
 
